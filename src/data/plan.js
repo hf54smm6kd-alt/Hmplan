@@ -19,7 +19,9 @@ const round5 = (v) => Math.round(v * 2) / 2
 
 export function computeStructure(config) {
   const start = startOfMonday(config.startDate)
-  const totalWeeks = Math.max(8, weekNumberFor(config.raceDate, start))
+  // The store stores the race date as `goalRaceDate`; accept either name.
+  const raceDate = config.raceDate || config.goalRaceDate
+  const totalWeeks = Math.max(8, weekNumberFor(raceDate, start))
   const taperWeeks = 2
   // Where the season ends (last Phase-1 week). Clamp so Phase 2 keeps ≥2 weeks
   // and Phase 3 keeps ≥6, while protecting the 2-week taper.
