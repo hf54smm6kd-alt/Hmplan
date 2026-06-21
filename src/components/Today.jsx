@@ -96,7 +96,7 @@ export default function Today({ onLog, onCheckIn }) {
         const recMeta = rec && rec.type !== session.type ? metaFor(rec.type) : null
         return (
           <div key={session.id} className="space-y-2">
-            <SessionCard session={session} onLog={onLog} />
+            <SessionCard session={session} onLog={onLog} defaultOpen />
             {rec && rec.action !== 'AS_PLANNED' && (
               <div className={`rounded-xl px-4 py-3 text-sm ring-1 ${
                 ACTION_TONE[rec.action] === 'red' ? 'bg-red-500/10 text-red-200 ring-red-500/30' :
