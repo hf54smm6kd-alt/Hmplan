@@ -30,10 +30,12 @@ export default function LogSession({ session, open, onClose }) {
     } else setRun({ distanceKm: session.plannedKm ?? '', time: '', avgHr: '', maxHr: '', rpe: '' })
     if (existing?.strength) setStrength({ ...existing.strength, durationMin: existing.strength.durationSec ? Math.round(existing.strength.durationSec / 60) : '' })
     if (existing?.sprint) setSprint({ ...existing.sprint, durationMin: existing.sprint.durationSec ? Math.round(existing.sprint.durationSec / 60) : '' })
-    // default tab from session type
+    // Default tab from session type (falls back to strength for days with no
+    // run/sprint, e.g. rest days used to log split-out prehab).
     if (SPRINT_TYPES.includes(session.type)) setTab('sprint')
     else if (STRENGTH_TYPES.includes(session.type)) setTab('strength')
-    else setTab('run')
+    else if (RUN_TYPES.includes(session.type)) setTab('run')
+    else setTab('strength')
   }, [session?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!session) return null
@@ -88,16 +90,12 @@ export default function LogSession({ session, open, onClose }) {
     onClose()
   }
 
-  const showTabs = ['SPEED_DAY'].includes(session.type) // speed day has lift+sprint
   const availTabs = []
-  if (RUN_TYPES.includes(session.type) || session.type === 'LONG_RUN') availTabs.push('run')
-  if (session.type === 'SPEED_DAY') {
-    availTabs.push('sprint', 'strength')
-  } else {
-    if (SPRINT_TYPES.includes(session.type)) availTabs.push('sprint')
-    if (STRENGTH_TYPES.includes(session.type)) availTabs.push('strength')
-  }
-  if (!availTabs.length) availTabs.push('run') // GAA/rest etc still allow a generic note/run log
+  if (RUN_TYPES.includes(session.type)) availTabs.push('run')
+  if (session.type === 'SPEED_DAY' || SPRINT_TYPES.includes(session.type)) availTabs.push('sprint')
+  // Strength/accessory can be logged on ANY day — this is what lets you split a
+  // session (e.g. front squat + sliders one day, the prehab circuit on another).
+  availTabs.push('strength')
 
   return (
     <Modal open={open} onClose={onClose} title={`Log · ${meta.label}`} wide>
