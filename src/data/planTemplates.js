@@ -91,3 +91,26 @@ export const WEEK_PROGRESSIONS = {
   30: { threshold: 'Sharp & short: 3 × 6 min @ threshold + 4 × 2 min @ HM pace.', sprints: 'Speed touch only: 3 × 20 m fly. Speed freshens, doesn’t fatigue.', hmPace: 'Trimmed long run with a 3–4 km HM-pace segment.' },
   31: { hmPace: 'Race-week openers (Tue): 3–4 × 2 min @ HM goal pace.', note: 'Race Sunday — even / slight-negative split off your recalibrated goal pace.' },
 }
+
+// Front-squat heavy-anchor loading progression (the athlete's chosen heavy
+// bilateral lift). Built around maintenance: establish & build in Phase 1, hold
+// heavy/low-volume through the running block (done fresh after the Speed Day's
+// sprints), back off on down/tune-up weeks, and drop volume in the taper.
+export function lowerProgression(week) {
+  const w = week.weekNumber
+  if (week.isRaceWeek) return 'Front squat: skip the heavy squat — movement prep only. Race Sunday.'
+  if (week.isTuneUp) return 'Front squat: 2 × 3 @ RPE 7 (light) — save the legs for the tune-up TT.'
+  if (week.isDownWeek) return 'Front squat: 2 × 3 @ RPE 7 — back off the load this down week.'
+  if (week.phaseIdx === 0) {
+    if (w <= 4) return 'Front squat: 3 × 5 @ RPE 7 — establish a clean, heavy 5.'
+    if (w <= 8) return 'Front squat: 3 × 5 @ RPE 7.5 — add load when bar speed stays fast.'
+    if (w <= 12) return 'Front squat: 4 × 4 @ RPE 8 — heavier, crisp reps.'
+    return 'Front squat: 4 × 3 @ RPE 8 (~85% 1RM) — peak in-season strength.'
+  }
+  if (week.phaseIdx === 3) return 'Front squat: 2 × 2 @ RPE 7 — hold the pattern, drop volume (taper).'
+  // Phases 2 & 3: heavy, low-volume maintenance, done fresh after the sprints.
+  if (w <= 20) return 'Front squat: 3 × 3 @ ~85% 1RM (RPE 8) — heavy & low-volume, fresh after the sprints.'
+  if (w <= 24) return 'Front squat: 3 × 3 @ RPE 8.'
+  if (w <= 27) return 'Front squat: 3 × 2 @ RPE 8 — heavy & snappy.'
+  return 'Front squat: 2 × 3 @ RPE 7.5 — easing.'
+}

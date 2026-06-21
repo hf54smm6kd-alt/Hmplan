@@ -5,7 +5,7 @@
 // canonical spec tables when the structure is the default, otherwise a formula.
 
 import { startOfMonday, weekNumberFor, addDays, isoDate, diffDays } from '../lib/dates.js'
-import { CANONICAL_WEEKS, PHASE_DEFS, WEEK_PROGRESSIONS } from './planTemplates.js'
+import { CANONICAL_WEEKS, PHASE_DEFS, WEEK_PROGRESSIONS, lowerProgression } from './planTemplates.js'
 
 let sid = 0
 const nextId = (prefix) => `${prefix}_${sid++}`
@@ -111,7 +111,7 @@ function makeSession(weekId, date, dayOffset, type, plannedDetail, plannedKm, pr
 }
 
 // Phase 1: football is king; 2–3 easy runs around fixtures.
-function buildPhase1(weekId, monday, targets, prog) {
+function buildPhase1(weekId, monday, targets, prog, lowerCue) {
   const out = []
   const long = targets.long
   const remaining = Math.max(0, targets.vol - long)
@@ -122,7 +122,7 @@ function buildPhase1(weekId, monday, targets, prog) {
     wed = round5(remaining * 0.6)
     fri = round5(remaining - wed)
   }
-  out.push(makeSession(weekId, addDays(monday, 0), 0, 'STRENGTH_LOWER', 'Heavy compound + Nordics. Bilateral plyos only if fresh (far from match).'))
+  out.push(makeSession(weekId, addDays(monday, 0), 0, 'STRENGTH_LOWER', 'Front squat + sliders + prehab circuit. Bilateral plyos only if fresh (far from match).', null, lowerCue))
   out.push(makeSession(weekId, addDays(monday, 1), 1, 'GAA_PITCH', 'Speed/accel work here, fresh & early.'))
   out.push(makeSession(weekId, addDays(monday, 2), 2, 'EASY', wed >= remaining ? 'Conversational. Add 4–6×80 m strides on quieter weeks.' : 'Conversational pace.', wed))
   out.push(makeSession(weekId, addDays(monday, 2), 2, 'STRENGTH_UPPER', 'Maintenance upper session.'))
@@ -135,7 +135,7 @@ function buildPhase1(weekId, monday, targets, prog) {
 }
 
 // Phase 2: ramp volume + install the Speed Day; one threshold/week.
-function buildPhase2(weekId, monday, targets, prog) {
+function buildPhase2(weekId, monday, targets, prog, lowerCue) {
   const out = []
   const long = targets.long
   const speedKm = 4
@@ -146,7 +146,7 @@ function buildPhase2(weekId, monday, targets, prog) {
   const sat = round5(rem * 0.28)
   const fri = round5(Math.max(0, rem - mon - wed - sat))
   out.push(makeSession(weekId, addDays(monday, 0), 0, 'EASY', 'Recover from Sunday long run. + 4–6 strides. (Rest if flat.)', mon))
-  out.push(makeSession(weekId, addDays(monday, 1), 1, 'SPEED_DAY', 'Plyos: pogos, line/ankle hops, low box jumps, hurdle hops (two-footed).', null, prog?.sprints))
+  out.push(makeSession(weekId, addDays(monday, 1), 1, 'SPEED_DAY', 'Plyos: pogos, line/ankle hops, low box jumps, hurdle hops (two-footed).', null, [prog?.sprints, lowerCue].filter(Boolean)))
   out.push(makeSession(weekId, addDays(monday, 2), 2, 'EASY', 'Conversational.', wed))
   out.push(makeSession(weekId, addDays(monday, 2), 2, 'STRENGTH_UPPER', 'Maintenance upper session.'))
   out.push(makeSession(weekId, addDays(monday, 3), 3, 'THRESHOLD', 'Within an easy-padded run.', thrKm, prog?.threshold))
@@ -159,7 +159,7 @@ function buildPhase2(weekId, monday, targets, prog) {
 // Phase 3: race-specific. Threshold every Thu; VO₂max only on flagged weeks
 // (W23/26/28 canonically — skipping the tune-up and peak weeks). HM-pace is
 // delivered through the long run on W24/27/29.
-function buildPhase3(weekId, monday, targets, weekNum, prog, fallbackVo2) {
+function buildPhase3(weekId, monday, targets, weekNum, prog, fallbackVo2, lowerCue) {
   const out = []
   const long = targets.long
   const vo2Week = prog ? !!prog.vo2 : fallbackVo2
@@ -173,7 +173,7 @@ function buildPhase3(weekId, monday, targets, weekNum, prog, fallbackVo2) {
   const satEasy = vo2Week ? 0 : round5(Math.max(0, rem - mon - wed - fri))
 
   out.push(makeSession(weekId, addDays(monday, 0), 0, 'EASY', 'Easy + strides, or rest.', mon))
-  out.push(makeSession(weekId, addDays(monday, 1), 1, 'SPEED_DAY', 'Add bilateral depth/drop jumps this phase. Build flying-sprint exposure gradually.', null, prog?.sprints))
+  out.push(makeSession(weekId, addDays(monday, 1), 1, 'SPEED_DAY', 'Add bilateral depth/drop jumps this phase. Build flying-sprint exposure gradually.', null, [prog?.sprints, lowerCue].filter(Boolean)))
   out.push(makeSession(weekId, addDays(monday, 2), 2, 'EASY', 'Conversational.', wed))
   out.push(makeSession(weekId, addDays(monday, 2), 2, 'STRENGTH_UPPER', 'Maintenance upper session.'))
   out.push(
@@ -205,7 +205,7 @@ function buildPhase3(weekId, monday, targets, weekNum, prog, fallbackVo2) {
 }
 
 // Phase 4: taper. W-1 sharpens; race week opens up and races.
-function buildPhase4(weekId, monday, targets, isRaceWeek, prog) {
+function buildPhase4(weekId, monday, targets, isRaceWeek, prog, lowerCue) {
   const out = []
   if (isRaceWeek) {
     out.push(makeSession(weekId, addDays(monday, 0), 0, 'EASY', 'Easy + strides.', 6))
@@ -221,7 +221,7 @@ function buildPhase4(weekId, monday, targets, isRaceWeek, prog) {
   const long = targets.long
   let rem = Math.max(0, targets.vol - long - 9)
   out.push(makeSession(weekId, addDays(monday, 0), 0, 'EASY', 'Easy + strides.', round5(rem * 0.3)))
-  out.push(makeSession(weekId, addDays(monday, 1), 1, 'SPEED_DAY', 'Keep the speed touch: a few short flying sprints. Speed freshens, doesn\'t fatigue.', null, prog?.sprints))
+  out.push(makeSession(weekId, addDays(monday, 1), 1, 'SPEED_DAY', 'Keep the speed touch: a few short flying sprints. Speed freshens, doesn\'t fatigue.', null, [prog?.sprints, lowerCue].filter(Boolean)))
   out.push(makeSession(weekId, addDays(monday, 2), 2, 'EASY', 'Easy.', round5(rem * 0.3)))
   out.push(makeSession(weekId, addDays(monday, 3), 3, 'THRESHOLD', 'One sharp, short threshold at pace + a HM-pace segment.', 9, prog?.threshold))
   out.push(makeSession(weekId, addDays(monday, 4), 4, 'REST', 'Rest.'))
@@ -279,11 +279,14 @@ export function generatePlan(config) {
       fallbackVo2 = localIdx % 2 === 0 && !targets.tuneUp && w !== b.endWeek
     }
 
+    // Front-squat heavy-anchor cue for this week (works for reflowed plans too).
+    const lowerCue = lowerProgression(weeks[weeks.length - 1])
+
     let daySessions
-    if (phaseIdx === 0) daySessions = buildPhase1(weekId, monday, targets, prog)
-    else if (phaseIdx === 1) daySessions = buildPhase2(weekId, monday, targets, prog)
-    else if (phaseIdx === 2) daySessions = buildPhase3(weekId, monday, targets, w, prog, fallbackVo2)
-    else daySessions = buildPhase4(weekId, monday, targets, w === structure.totalWeeks, prog)
+    if (phaseIdx === 0) daySessions = buildPhase1(weekId, monday, targets, prog, lowerCue)
+    else if (phaseIdx === 1) daySessions = buildPhase2(weekId, monday, targets, prog, lowerCue)
+    else if (phaseIdx === 2) daySessions = buildPhase3(weekId, monday, targets, w, prog, fallbackVo2, lowerCue)
+    else daySessions = buildPhase4(weekId, monday, targets, w === structure.totalWeeks, prog, lowerCue)
 
     sessions.push(...daySessions)
   }

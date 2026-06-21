@@ -182,7 +182,7 @@ export default function LogSession({ session, open, onClose }) {
             <div key={ei} className="rounded-xl bg-slate-900/50 p-3">
               <div className="mb-2 flex items-center gap-2">
                 <Input
-                  placeholder="Exercise (e.g. Back squat, Nordic)"
+                  placeholder="Exercise (e.g. Front squat, sliders, Copenhagen)"
                   value={ex.name}
                   onChange={(e) => {
                     const exercises = [...strength.exercises]

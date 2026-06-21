@@ -47,8 +47,19 @@ export default function SessionCard({ session, onLog, compact, defaultOpen = fal
 
           {!compact && session.progression && (
             <div className="mt-2 rounded-xl bg-sky-500/10 px-3 py-2 text-sm leading-relaxed text-sky-100 ring-1 ring-sky-500/30">
-              <span className="font-semibold text-sky-300">This week: </span>
-              {session.progression}
+              <span className="font-semibold text-sky-300">This week:</span>
+              {Array.isArray(session.progression) ? (
+                <ul className="mt-1 space-y-1">
+                  {session.progression.map((p, i) => (
+                    <li key={i} className="flex gap-1.5">
+                      <span className="text-sky-400">•</span>
+                      <span>{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span> {session.progression}</span>
+              )}
             </div>
           )}
 
