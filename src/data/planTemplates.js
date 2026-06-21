@@ -48,3 +48,46 @@ export const PHASE_DEFS = [
   { name: 'Half-Marathon Specific', short: 'Phase 3', focus: 'Peak volume, threshold + HM-pace + VO₂max, long run to ~20–21 km, tune-up.', runRole: 'primary' },
   { name: 'Taper & Race', short: 'Phase 4', focus: 'Cut volume ~40–60%, keep intensity, sharpen, race.', runRole: 'primary' },
 ]
+
+// Explicit per-week progression for the canonical plan: the concrete "this week"
+// dose for each quality session, so the app can show exactly what to do rather
+// than a generic range. Keyed by week number. Fields:
+//   threshold  — Thursday threshold prescription
+//   vo2        — whether VO₂max is scheduled this week (Phase 3 only)
+//   vo2text    — the VO₂max prescription when vo2 is true
+//   sprints    — flying-sprint + plyo dose on the Speed Day
+//   hmPace     — HM-pace segment folded into the long run
+//   tuneup     — tune-up race instruction (W25)
+//   longRun/note — misc progression notes
+//
+// VO₂max cadence: W23 / W26 / W28 only — skipping the W25 tune-up week and the
+// W27 peak week (which carries HM-pace in the long run), and fading out by W29.
+export const WEEK_PROGRESSIONS = {
+  // Phase 1 — milestones (everything easy; volume is the progression)
+  1: { note: 'Intro — everything easy. Just build the aerobic habit around football.', longRun: 'Easy 6–8 km, no pace targets.' },
+  5: { longRun: 'Easy long run ~8 km. Add 4–6 strides to one midweek run.' },
+  9: { longRun: 'Easy long run ~10 km. Move to 3 runs/week if fixtures allow.' },
+  13: { longRun: 'Easy long run ~12 km — building toward 14 by season end.' },
+  16: { longRun: 'Easy long run ~14 km. You should now be comfortable with ~30 km/week of easy running.' },
+
+  // Phase 2 — threshold builds 3×8 → 2×20; flying-sprint volume builds gradually
+  17: { threshold: '3 × 8 min @ threshold, 2 min jog (24 min at threshold).', sprints: 'Flying sprints 4 × 20 m fly, full recovery. Plyos ~40 contacts (pogos, line hops).' },
+  18: { threshold: '2 × 15 min @ threshold, 3 min jog (30 min).', sprints: '4 × 25 m fly. Plyos ~50 contacts (add low box jumps).' },
+  19: { threshold: '3 × 12 min @ threshold, 2 min jog (36 min).', sprints: '5 × 25 m fly. Plyos ~60 contacts.' },
+  20: { threshold: '2 × 18 min @ threshold, 3 min jog (36 min).', sprints: '5 × 30 m fly. Plyos ~70 contacts (add hurdle hops).' },
+  21: { threshold: 'DOWN WEEK — 2 × 10 min @ threshold, 2 min jog (20 min).', sprints: 'DOWN — 4 × 20 m fly, plyos ~40 contacts. Keep it light.' },
+  22: { threshold: '2 × 20 min @ threshold, 3 min jog (40 min).', sprints: '6 × 30 m fly. Plyos ~80 contacts.' },
+
+  // Phase 3 — race-specific. VO₂max W23/26/28; HM-pace in the long run W24/27/29
+  23: { threshold: '3 × 12 min @ threshold, 2 min jog (36 min).', vo2: true, vo2text: 'VO₂max: 5 × 3 min @ 3k–5k effort, 2–3 min jog (15 min hard).', sprints: '5 × 30 m fly. Add bilateral depth/drop jumps 3 × 5.' },
+  24: { threshold: '2 × 20 min @ threshold, 3 min jog (40 min).', hmPace: 'Long-run finish: last 5 km @ HM goal pace.', sprints: '6 × 30 m fly. Depth jumps 3 × 5.' },
+  25: { threshold: 'Tune-up week — Thu light: 2 × 8 min easy-threshold. Save the legs.', sprints: 'DOWN — 3 × 20 m fly only. Plyos ~40 contacts.', tuneup: '★ 10k tune-up race / time trial. ~37:00–38:00 tracks toward 1:21. Recalibrate ALL paces off the result (Pace tab).' },
+  26: { threshold: '4 × 10 min @ threshold, 90 s jog (40 min).', vo2: true, vo2text: 'VO₂max: 6 × 3 min @ 3k–5k effort, 2–3 min jog (18 min hard) — or 8 × 2 min.', sprints: '6 × 30 m fly. Depth jumps 3 × 6.' },
+  27: { threshold: '2 × 15 min @ threshold (controlled — HM-pace lives in the long run this week).', hmPace: 'Peak long run: 2 × 4 km @ HM goal pace within the run.', sprints: '6 × 30 m fly (hold volume, quality high).' },
+  28: { threshold: '3 × 12 min @ threshold, 2 min jog (36 min).', vo2: true, vo2text: 'VO₂max: 10 × 2 min @ 3k–5k effort, 90 s jog (20 min hard) — last hard VO₂max of the block.', sprints: '5 × 30 m fly (starting to ease).' },
+  29: { threshold: 'Sharpen: 20 min continuous tempo + 4 × 2 min @ 10k effort.', hmPace: 'Long-run finish: last 4 km @ HM pace.', sprints: '4 × 30 m fly — sharp, fresh, low volume.' },
+
+  // Phase 4 — taper
+  30: { threshold: 'Sharp & short: 3 × 6 min @ threshold + 4 × 2 min @ HM pace.', sprints: 'Speed touch only: 3 × 20 m fly. Speed freshens, doesn’t fatigue.', hmPace: 'Trimmed long run with a 3–4 km HM-pace segment.' },
+  31: { hmPace: 'Race-week openers (Tue): 3–4 × 2 min @ HM goal pace.', note: 'Race Sunday — even / slight-negative split off your recalibrated goal pace.' },
+}
