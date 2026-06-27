@@ -196,6 +196,20 @@ export const SESSION_META = {
     ],
     why: 'Maintains aerobic stimulus with less tissue load; cycling interferes with power less than running (§1.4).',
   },
+  TEST: {
+    label: 'Test / time trial',
+    color: '#facc15',
+    icon: '⏱️',
+    detail: 'A hard, all-out effort to measure fitness and reset your training paces.',
+    zone: null,
+    prescription: [
+      { title: 'Warm-up', body: '15 min easy + 4 × 100 m strides + a couple of build-ups. Be ready to run hard.' },
+      { title: 'Effort', body: 'Run the test distance all-out and evenly paced (a parkrun is perfect for a 5k). Record the time.' },
+      { title: 'Recalibrate', body: 'Log it here (or in the Pace tab) — your current-fitness zones and projected HM update automatically.' },
+      { title: 'Cool-down', body: '10–15 min easy.' },
+    ],
+    why: 'Paces should track real fitness, not the goal alone (§2.8). Periodic tests let your training paces migrate toward goal pace on evidence — the W25 10k is the key one.',
+  },
   RACE: {
     label: 'RACE — Half Marathon',
     color: '#eab308',

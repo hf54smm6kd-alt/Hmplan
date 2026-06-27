@@ -4,14 +4,14 @@ import { metaFor } from '../data/sessionLibrary.js'
 import { parseTime, formatTime, formatPace, paceSecPerKm } from '../lib/paces.js'
 import { useStore } from '../lib/store.jsx'
 
-const RUN_TYPES = ['EASY', 'RECOVERY', 'LONG_RUN', 'THRESHOLD', 'HM_PACE', 'VO2MAX', 'STRIDES', 'CROSS_TRAIN', 'RACE']
+const RUN_TYPES = ['EASY', 'RECOVERY', 'LONG_RUN', 'THRESHOLD', 'HM_PACE', 'VO2MAX', 'STRIDES', 'CROSS_TRAIN', 'RACE', 'TEST']
 const STRENGTH_TYPES = ['STRENGTH_LOWER', 'STRENGTH_UPPER']
 const SPRINT_TYPES = ['SPEED_DAY', 'PLYO']
 
 const blankSet = () => ({ reps: '', loadKg: '', rpe: '' })
 
 export default function LogSession({ session, open, onClose }) {
-  const { getLog, setLog, setStatus } = useStore()
+  const { state, getLog, setLog, setStatus, addTest } = useStore()
   const existing = session ? getLog(session) : null
   const meta = session ? metaFor(session.type) : null
 
@@ -44,9 +44,10 @@ export default function LogSession({ session, open, onClose }) {
   const pace = runSecs && run.distanceKm ? paceSecPerKm(runSecs, Number(run.distanceKm)) : null
 
   function saveRun(markDone = true) {
+    const distKm = run.distanceKm === '' ? null : Number(run.distanceKm)
     setLog(session, {
       run: {
-        distanceKm: run.distanceKm === '' ? null : Number(run.distanceKm),
+        distanceKm: distKm,
         durationSec: runSecs,
         avgPaceSecPerKm: pace,
         avgHr: run.avgHr === '' ? null : Number(run.avgHr),
@@ -56,6 +57,14 @@ export default function LogSession({ session, open, onClose }) {
       notes,
       status: markDone ? 'DONE' : existing?.status || 'PLANNED',
     })
+    // A scheduled test/race auto-creates a TestResult so paces recalibrate.
+    if ((session.type === 'TEST' || session.type === 'RACE') && distKm && runSecs) {
+      const dup = (state.tests || []).some((t) => t.date === session.date && Math.abs(t.distanceKm - distKm) < 0.1)
+      if (!dup) {
+        const type = Math.abs(distKm - 5) < 0.3 ? '5k_TT' : Math.abs(distKm - 10) < 0.3 ? '10k_TT' : distKm > 20 ? 'race' : 'race'
+        addTest({ date: session.date, type, distanceKm: distKm, timeSec: runSecs })
+      }
+    }
     onClose()
   }
 
@@ -134,6 +143,11 @@ export default function LogSession({ session, open, onClose }) {
             <Field label="RPE (1–10)"><Input type="number" min="1" max="10" value={run.rpe} onChange={(e) => setRun({ ...run, rpe: e.target.value })} /></Field>
           </div>
           <Field label="Notes"><Input value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
+          {(session.type === 'TEST' || session.type === 'RACE') && (
+            <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-xs text-amber-200 ring-1 ring-amber-500/30">
+              Saving this logs it as a test result — your current-fitness paces and projected HM time recalibrate automatically.
+            </p>
+          )}
           <div className="flex gap-2 pt-1">
             <Button variant="success" className="flex-1" onClick={() => saveRun(true)}>Save & mark done</Button>
             <Button variant="ghost" onClick={() => saveRun(false)}>Save draft</Button>

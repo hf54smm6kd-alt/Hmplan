@@ -135,7 +135,7 @@ function buildPhase1(weekId, monday, targets, prog, lowerCue) {
 }
 
 // Phase 2: ramp volume + install the Speed Day; one threshold/week.
-function buildPhase2(weekId, monday, targets, prog, lowerCue) {
+function buildPhase2(weekId, monday, targets, prog, lowerCue, isBaselineWeek) {
   const out = []
   const long = targets.long
   const speedKm = 4
@@ -151,7 +151,11 @@ function buildPhase2(weekId, monday, targets, prog, lowerCue) {
   out.push(makeSession(weekId, addDays(monday, 2), 2, 'STRENGTH_UPPER', 'Maintenance upper session.'))
   out.push(makeSession(weekId, addDays(monday, 3), 3, 'THRESHOLD', 'Within an easy-padded run.', thrKm, prog?.threshold))
   out.push(makeSession(weekId, addDays(monday, 4), 4, 'EASY', 'Easy or rest.', fri))
-  out.push(makeSession(weekId, addDays(monday, 5), 5, 'EASY', 'Easy + 4–6 strides.', sat))
+  if (isBaselineWeek)
+    out.push(makeSession(weekId, addDays(monday, 5), 5, 'TEST', 'Baseline 5k / parkrun — sets your starting paces now that running is primary.', 5, 'Run a 5k all-out (parkrun is ideal). Log it → current-fitness paces + projected HM recalibrate automatically.'))
+  else if (targets.down)
+    out.push(makeSession(weekId, addDays(monday, 5), 5, 'TEST', 'Optional parkrun 5k fitness check (down week).', 5, 'Optional 5k/parkrun. Log it to refresh your paces mid-block — or just run it easy if you\'d rather rest.'))
+  else out.push(makeSession(weekId, addDays(monday, 5), 5, 'EASY', 'Easy + 4–6 strides.', sat))
   out.push(makeSession(weekId, addDays(monday, 6), 6, 'LONG_RUN', 'Easy. Volume + durability.', long))
   return out
 }
@@ -188,17 +192,19 @@ function buildPhase3(weekId, monday, targets, weekNum, prog, fallbackVo2, lowerC
     ),
   )
   out.push(makeSession(weekId, addDays(monday, 4), 4, 'EASY', 'Easy or rest.', fri))
-  if (vo2Week) out.push(makeSession(weekId, addDays(monday, 5), 5, 'VO2MAX', 'Short reps at 3k–5k effort. Lift the ceiling.', satQualityKm, prog?.vo2text))
+  if (targets.down && !targets.tuneUp)
+    out.push(makeSession(weekId, addDays(monday, 5), 5, 'TEST', 'Optional parkrun 5k — replaces this week\'s VO₂max. Final pre-taper fitness check.', 5, 'A 5k/parkrun all-out doubles as your hard session this week. Log it to recalibrate before the taper.'))
+  else if (vo2Week) out.push(makeSession(weekId, addDays(monday, 5), 5, 'VO2MAX', 'Short reps at 3k–5k effort. Lift the ceiling.', satQualityKm, prog?.vo2text))
   else out.push(makeSession(weekId, addDays(monday, 5), 5, 'EASY', 'Easy + 4–6 strides.', satEasy))
   out.push(
     makeSession(
       weekId,
       addDays(monday, 6),
       6,
-      targets.tuneUp ? 'HM_PACE' : 'LONG_RUN',
-      targets.tuneUp ? 'Replace with a 10k tune-up race/TT and recalibrate paces.' : 'Long run; HM-pace finishing segments in later weeks.',
-      long,
-      targets.tuneUp ? prog?.tuneup : prog?.hmPace || prog?.longRun,
+      targets.tuneUp ? 'TEST' : 'LONG_RUN',
+      targets.tuneUp ? '★ 10k tune-up race / time trial — the key recalibration. ~37:00–38:00 tracks toward 1:21.' : 'Long run; HM-pace finishing segments in later weeks.',
+      targets.tuneUp ? 10 : long,
+      targets.tuneUp ? prog?.tuneup || 'Run a 10k all-out. Log it → every training pace resets off the result.' : prog?.hmPace || prog?.longRun,
     ),
   )
   return out
@@ -282,9 +288,12 @@ export function generatePlan(config) {
     // Front-squat heavy-anchor cue for this week (works for reflowed plans too).
     const lowerCue = lowerProgression(weeks[weeks.length - 1])
 
+    // Baseline 5k test on the first Saturday of the base block (Phase 2).
+    const isBaselineWeek = phaseIdx === 1 && w === structure.bounds[1].startWeek
+
     let daySessions
     if (phaseIdx === 0) daySessions = buildPhase1(weekId, monday, targets, prog, lowerCue)
-    else if (phaseIdx === 1) daySessions = buildPhase2(weekId, monday, targets, prog, lowerCue)
+    else if (phaseIdx === 1) daySessions = buildPhase2(weekId, monday, targets, prog, lowerCue, isBaselineWeek)
     else if (phaseIdx === 2) daySessions = buildPhase3(weekId, monday, targets, w, prog, fallbackVo2, lowerCue)
     else daySessions = buildPhase4(weekId, monday, targets, w === structure.totalWeeks, prog, lowerCue)
 

@@ -2,8 +2,8 @@
 // into a concrete recommendation, with an explicit reason. Hamstring flag is the
 // hard override; then the green/yellow/red traffic-light drives trims/converts.
 
-const FAST_OR_ECCENTRIC = ['SPEED_DAY', 'PLYO', 'VO2MAX', 'THRESHOLD', 'HM_PACE', 'STRIDES']
-const HARD_QUALITY = ['SPEED_DAY', 'VO2MAX', 'THRESHOLD', 'HM_PACE']
+const FAST_OR_ECCENTRIC = ['SPEED_DAY', 'PLYO', 'VO2MAX', 'THRESHOLD', 'HM_PACE', 'STRIDES', 'TEST']
+const HARD_QUALITY = ['SPEED_DAY', 'VO2MAX', 'THRESHOLD', 'HM_PACE', 'TEST']
 
 // Compute the traffic-light from a readiness record. Wearable recovery score
 // wins if present; otherwise a 1–5 self-rating composite + resting-HR bump.
